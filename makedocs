@@ -1,0 +1,92 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+import glob
+import os
+import re
+import shutil
+import subprocess
+import tempfile
+
+# ------------------------------------------------------------------------------
+
+
+def strip_external_styles(filename, outname=None):
+    """ Strip out references to external styles in html files.
+
+    Parameters
+    ----------
+    filename : str
+        Fullname of the file to strip from.
+    outname : bool, opt
+        Outname to write to.  If not supplied, will write in-place.
+    """
+    if not outname:
+        outname = filename
+    ext_links = ['(<link.*?http.+?>)',
+                 '(@import url\(.*?http.+?\);)']
+
+    with open(filename, 'r') as handle:
+        body = handle.read()
+
+    for pattern in ext_links:
+        regex = re.compile(pattern)
+        body = regex.sub('', body)
+
+    with open(outname, 'w') as handle:
+        handle.write(body)
+
+# ------------------------------------------------------------------------------
+
+
+def force_access(filename):
+    """ Copies file to temp location, deletes original, then restores
+
+    This function takes advantage of unix filesystem rules to change ownership
+    of a file.  Though moving a file will keep the creator's permissions,
+    performaing a copy will update the ownership to the user that issues the
+    command.
+
+    Parameters
+    ----------
+    filename : str
+        Full path to the file to be forced under current user ownership
+
+    """
+
+    _, temp_name = tempfile.mkstemp()
+
+    shutil.copy(filename, temp_name)
+    os.remove(filename)
+    shutil.copy(temp_name, filename)
+
+# ------------------------------------------------------------------------------
+
+
+if __name__ == "__main__":
+    convert_cmds = ["docker run -ti -v {0}:/docs humangeo/aglio"
+                    " -i docs/main.md  --theme-variables streak"
+                    " --theme-variables docs/docs.less"
+                    " -o index.html".format(os.getcwd())]
+
+    for cmd in convert_cmds:
+        try:
+            subprocess.check_call(cmd.split())
+        except subprocess.CalledProcessError as e:
+            print(e)
+            exit(1)
+
+    final_dir = './static'
+    if not os.path.exists(final_dir):
+        os.makedirs(final_dir)
+
+    for item in glob.glob('*.html'):
+        # --Assert files are editable by current user.  Needed to resolve issues
+        # --with Circle-CI
+        if not os.access(item, os.W_OK):
+            force_access(item)
+
+        strip_external_styles(item)
+        shutil.move(item, os.path.join(final_dir, item))
+    print("Docs made")
