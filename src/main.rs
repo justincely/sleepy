@@ -33,6 +33,7 @@ fn index() -> io::Result<NamedFile> {
   NamedFile::open("static/index.html")
 }
 
+/// Starts a new HTTP server.
 fn main() {
     rocket::ignite().mount("/", routes![hello, sleep, index]).launch();
 }
