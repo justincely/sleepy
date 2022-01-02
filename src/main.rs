@@ -1,15 +1,12 @@
-#![feature(plugin)]
-#![plugin(rocket_codegen)]
-#![allow(unused)]
+#![feature(proc_macro_hygiene, decl_macro)]
+
+#[macro_use] extern crate rocket;
 
 use std::io;
-use std::path::{Path, PathBuf};
-
-use rocket::response::NamedFile;
-
 use std::thread;
 use std::time;
-extern crate rocket;
+use rocket::response::NamedFile;
+
 
 #[get("/hello/<name>/<age>")]
 fn hello(name: String, age: u8) -> String {
