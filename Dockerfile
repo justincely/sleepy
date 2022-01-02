@@ -12,10 +12,10 @@ RUN rustup default nightly && \
 FROM rust:1-slim
 
 WORKDIR /app
-COPY --from=builder /app/target/release/rust_server /app/rust_server
+COPY --from=builder /app/target/release/sleepy /app/sleepy
 COPY --from=builder /app/static/index.html /app/static/index.html
 COPY --from=builder /app/Rocket.toml /app/Rocket.toml
 
 ENV ROCKET_ENV production
 
-CMD ./rust_server
+CMD ./sleepy

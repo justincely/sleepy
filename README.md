@@ -1,5 +1,4 @@
 # Sleepy Microservice
-[![Build Status](https://travis-ci.org/justincely/sleepy.svg?branch=master)](https://travis-ci.org/justincely/sleepy)
 
 This is a really contrived microservice playing with rust.
 
